@@ -387,9 +387,15 @@ defmodule Xandra.Cluster do
   end
 
   defp with_conn(cluster, fun) do
-    case GenServer.call(cluster, :checkout) do
-      {:ok, pool} ->
-        fun.(pool)
+    case GenServer.call(cluster, :checkout_with_address) do
+      {:ok, pool, address} ->
+        try do
+          fun.(pool)
+        rescue
+          error ->
+            Logger.error("Debugging session, caught error: #{inspect(error)} for pool=(#{inspect(pool)}) address=(#{inspect(address)})")
+            reraise(error, __STACKTRACE__)
+        end
 
       {:error, :empty} ->
         action = "checkout from cluster #{inspect(cluster)}"
@@ -419,6 +425,22 @@ defmodule Xandra.Cluster do
     else
       pool = select_pool(load_balancing, pools, node_refs)
       {:reply, {:ok, pool}, state}
+    end
+  end
+
+  @impl true
+  def handle_call(:checkout_with_address, _from, %__MODULE__{} = state) do
+    %{
+      node_refs: node_refs,
+      load_balancing: load_balancing,
+      pools: pools
+    } = state
+
+    if Enum.empty?(pools) do
+      {:reply, {:error, :empty}, state}
+    else
+      {address, pool} = Enum.random(pools)
+      {:reply, {:ok, pool, address}, state}
     end
   end
 
