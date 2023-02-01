@@ -393,7 +393,19 @@ defmodule Xandra.Cluster do
           fun.(pool)
         rescue
           error ->
-            Logger.error("Debugging session, caught error: #{inspect(error)} for pool=(#{inspect(pool)}) address=(#{inspect(address)})")
+            error_shortened =
+              case error do
+                %DBConnection.ConnectionError{reason: :queue_timeout} ->
+                  %{error | message: "MANUALLY_SHORTENED"}
+
+                err ->
+                  err
+              end
+
+            Logger.debug(
+              "debugging_session=(true), caught_error=(#{inspect(error_shortened)}) pool=(#{inspect(pool)}) address=(#{inspect(address)})"
+            )
+
             reraise(error, __STACKTRACE__)
         end
 
