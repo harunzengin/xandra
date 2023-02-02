@@ -402,7 +402,7 @@ defmodule Xandra.Cluster do
                   err
               end
 
-            Logger.debug(
+            Logger.info(
               "debugging_session=(true), caught_error=(#{inspect(error_shortened)}) pool=(#{inspect(pool)}) address=(#{inspect(address)})"
             )
 
@@ -460,7 +460,7 @@ defmodule Xandra.Cluster do
   def handle_cast(message, state)
 
   def handle_cast({:activate, node_ref, address, port}, %__MODULE__{} = state) do
-    _ = Logger.debug("Control connection for #{:inet.ntoa(address)}:#{port} is up")
+    _ = Logger.info("Control connection for #{:inet.ntoa(address)}:#{port} is up")
 
     # Update the node_refs with the actual address of the control connection node.
     state = update_in(state.node_refs, &List.keystore(&1, node_ref, 0, {node_ref, address}))
@@ -470,7 +470,7 @@ defmodule Xandra.Cluster do
   end
 
   def handle_cast({:discovered_peers, peers}, %__MODULE__{} = state) do
-    _ = Logger.debug("Discovered peers: #{inspect(peers)}")
+    _ = Logger.info("Discovered peers: #{inspect(peers)}")
     port = state.autodiscovered_nodes_port
     state = Enum.reduce(peers, state, &start_pool(_state = &2, _peer = &1, port))
     {:noreply, state}
@@ -515,7 +515,7 @@ defmodule Xandra.Cluster do
 
     case Supervisor.start_child(pool_supervisor, child_spec) do
       {:ok, pool} ->
-        _ = Logger.debug("Started connection to #{inspect(address)}")
+        _ = Logger.info("Started connection to #{inspect(address)}")
         %{state | pools: Map.put(pools, address, pool)}
 
       {:error, {:already_started, _pool}} ->
