@@ -55,7 +55,7 @@ defmodule Xandra.Mixfile do
   defp deps() do
     [
       {:db_connection, "~> 2.0"},
-      {:decimal, "~> 1.7", optional: true},
+      {:decimal, "~> 2.0", optional: true},
       {:snappy, github: "skunkwerks/snappy-erlang-nif", only: [:dev, :test]},
       {:ex_doc, "~> 0.20", only: :dev},
       {:dialyxir, "~> 1.0.0-rc.6", only: :dev, runtime: false}
